@@ -12,6 +12,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import static java.lang.System.setProperty;
+
 public class Util {
 
 
@@ -31,5 +33,42 @@ public class Util {
             System.out.println("Connection ERROR");
         }
         return connection;
+    }
+
+
+    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
+    private static final String URL = "jdbc:mysql://localhost:3306/usersdb?autoReconnect=true&useSSL=false";
+    private static final String USERNAME = "root";
+    private static final String PASSWORD = "root";
+
+    public static SessionFactory sessionFactory;
+
+    public SessionFactory getSessionFactory() {
+        if (sessionFactory == null) {
+            try {
+                Configuration configuration = new Configuration();
+
+                configuration.setProperty(Environment.DRIVER, DRIVER);
+                configuration.setProperty(Environment.URL, URL);
+                configuration.setProperty(Environment.USER, USERNAME);
+                configuration.setProperty(Environment.PASS, PASSWORD);
+                configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MySQL5Dialect");
+                configuration.setProperty(Environment.SHOW_SQL, "true");
+                configuration.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+                configuration.setProperty(Environment.HBM2DDL_AUTO, "create-drop");
+
+                configuration.addAnnotatedClass(User.class);
+
+                ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                        .applySettings(configuration.getProperties()).build();
+
+                sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+            } catch (Exception e) {
+                System.out.println("Problem creating session factory");
+                e.printStackTrace();
+            }
+        }
+
+        return sessionFactory;
     }
 }
